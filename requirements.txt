@@ -1,0 +1,4 @@
+asyncpg
+aiomysql
+git+https://github.com/Rapptz/asqlite
+motor
