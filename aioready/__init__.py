@@ -1,8 +1,9 @@
-import typing
 from typing import NamedTuple, Literal
 
-# thank you dpy for this
-# https://github.com/Rapptz/discord.py/blob/master/discord/__init__.py#L21
+from .database_enum import DatabaseType
+from .database import (Connection, Database)
+from .errors import *
+from .utils import *
 
 class VersionInfo(NamedTuple):
     major: int
@@ -11,5 +12,5 @@ class VersionInfo(NamedTuple):
     releaselevel: Literal["alpha", "beta", "candidate", "final"]
     serial: int
 
-version = "1.0.0"
+__version__ = "1.0.0"
 version_info: VersionInfo = VersionInfo(major=1, minor=0, micro=0, releaselevel='alpha', serial=0)

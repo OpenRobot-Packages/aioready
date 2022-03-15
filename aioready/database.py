@@ -1,30 +1,31 @@
-try:
-	import asyncpg, asqlite, motor.motor_asyncio, aiomysql
-except ImportError as e:
-	raise ImportError(e) from e
-from .utils import parse, URL
-import motor.motor_asyncio as aiomongo
 import asyncio
+from dataclasses import MISSING
 
-# TODO: finish `Connector` class
+from typing import Any, Optional, List, Dict
 
-class Connector:
-	def __init__(self, url_or_dsn : str) -> None:
-		self._url = url_or_dsn
-		self._db = None
-		if self.url.scheme == "mongodb":
-			self._db = aiomongo.AsyncIOMotorClient(self._url)
-		elif self.url.scheme in ("postgre", "postgresql"):
-			self._db = asyncpg.create_pool(self._url)
+import asyncpg
+import asqlite
+import aiomysql
 
-	def init(self):
-		if not self._db:
-			raise RuntimeError("You do not have a correct connection url or it is not yet implemented.")
+import motor.motor_asyncio as motor
 
-	@property
-	def url(self) -> URL:
-		return self._url
+from .errors import *
+from .utils import URL, parse, copy_docs
+from .database_enum import DatabaseType
 
-class Database(Connector):
-	def __init__(self, url_or_dsn : str) -> None:
-		super().__init__(url_or_dsn)
+class Database:
+	def __init__(self, type: DatabaseType, url: str = MISSING) -> None:
+		self.url = url
+		self.type = type
+
+class Connection:
+	def __init__(self, *databases: List[Database]) -> None:
+		self._databases: List[Database] = databases
+		self.databases: Dict[int, Database] = {}
+
+	async def connect(self):
+		for index, db in enumerate(iterable=self._databases):
+			if db.type == DatabaseType.mongo:
+				self.databases[index] = (motor.AsyncIOMotorClient(db.url))
+			if db.type == DatabaseType.postgresql:
+				self.databases[index] = await (asyncpg.create_pool(db.url))
